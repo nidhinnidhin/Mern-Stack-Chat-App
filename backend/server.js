@@ -11,6 +11,8 @@ const { notFound, errorHandler } = require("./middlewares/errorMiddleware");
 
 dotenv.config();
 
+
+
 const corsOptions = {
   origin: "http://localhost:3000",
   credentials: true,
@@ -21,6 +23,7 @@ app.use(cors(corsOptions));
 
 app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(express.static(path.join(__dirname, "front-end", "build")));
 
 app.use("/api/user", userRoutes);
 app.use("/api/chat", chatRoutes);
@@ -30,7 +33,7 @@ app.use(notFound);
 app.use(errorHandler);
 
 app.get("/", (req, res) => {
-  res.send("Hello from node api");
+  res.sendFile(path.join(__dirname,"frontend", "build", "index.html"));
 });
 
 connectDB();
