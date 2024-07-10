@@ -12,12 +12,12 @@ if (localStorage.getItem("userInfo")) {
 const PORT = process.env.REACT_APP_BACKEND_PORT;
 
 const axiosInstance = axios.create({
-    baseURL: `http:127.0.0.1:${PORT}`,
+    baseURL: `http://127.0.0.1:${PORT}`,
     headers: {'Content-Type': 'application/json'},
 });
 
 export const axiosReqWithToken = axios.create({
-    baseURL: `http:127.0.0.1:${PORT}`,
+    baseURL: `http://127.0.0.1:${PORT}`,
     headers: { Authorization: `Bearer ${token}` }
 });
 
