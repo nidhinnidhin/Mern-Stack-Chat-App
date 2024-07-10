@@ -13,7 +13,7 @@ const path = require('path')
 dotenv.config();
 
 const corsOptions = {
-  origin: "http://localhost:3000",
+  origin: "https://mern-stack-chat-app-c0vm.onrender.com",
   credentials: true,
   optionSuccessStatus: 200,
 };

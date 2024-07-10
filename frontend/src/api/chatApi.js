@@ -1,7 +1,7 @@
 import axios from 'axios'
 import PORT from '../config'
 
-const baseURL = `https://mern-stack-chat-app-sxw5.vercel.app`;
+const baseURL = `https://mern-stack-chat-app-c0vm.onrender.com`;
 
 export const fetchChats = async () => {
     try{

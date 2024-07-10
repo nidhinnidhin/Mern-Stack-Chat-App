@@ -57,7 +57,7 @@ const Login = () => {
 
     try {
       const body = { email, password };
-      const { data } = await axiosInstence.post("api/user/login", body);
+      const { data } = await axiosInstence.post("/api/user/login", body);
       toast({
         title: "Login Successfull!",
         status: "success",
