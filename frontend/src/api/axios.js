@@ -12,12 +12,12 @@ if (localStorage.getItem("userInfo")) {
 const PORT = process.env.REACT_APP_BACKEND_PORT;
 
 const axiosInstance = axios.create({
-    baseURL: `https://mern-stack-chat-app-sxw5.vercel.app`,
+    baseURL: `http:127.0.0.1:${PORT}`,
     headers: {'Content-Type': 'application/json'},
 });
 
 export const axiosReqWithToken = axios.create({
-    baseURL: `https://mern-stack-chat-app-sxw5.vercel.app`,
+    baseURL: `http:127.0.0.1:${PORT}`,
     headers: { Authorization: `Bearer ${token}` }
 });
 
