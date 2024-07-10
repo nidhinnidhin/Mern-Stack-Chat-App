@@ -12,12 +12,12 @@ if (localStorage.getItem("userInfo")) {
 const PORT = process.env.REACT_APP_BACKEND_PORT;
 
 const axiosInstance = axios.create({
-    baseURL: `https://mern-stack-chat-app-c0vm.onrender.com`,
+    baseURL: `https://mern-stack-chat-app-1.onrender.com`,
     headers: {'Content-Type': 'application/json'},
 });
 
 export const axiosReqWithToken = axios.create({
-    baseURL: `https://mern-stack-chat-app-c0vm.onrender.com`,
+    baseURL: `https://mern-stack-chat-app-1.onrender.com`,
     headers: { Authorization: `Bearer ${token}` }
 });
 
