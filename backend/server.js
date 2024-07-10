@@ -12,7 +12,7 @@ const { notFound, errorHandler } = require("./middlewares/errorMiddleware");
 dotenv.config();
 
 const corsOptions = {
-  origin: "mern-stack-chat-app-sxw5.vercel.app",
+  origin: ["https://mern-stack-chat-app-one.vercel.app/"],
   credentials: true,
   optionSuccessStatus: 200,
 };
