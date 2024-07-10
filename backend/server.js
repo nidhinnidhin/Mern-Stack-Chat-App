@@ -12,7 +12,7 @@ const { notFound, errorHandler } = require("./middlewares/errorMiddleware");
 dotenv.config();
 
 const corsOptions = {
-  origin: ["https://mern-stack-chat-app-one.vercel.app/"],
+  origin: "http://localhost:3000",
   credentials: true,
   optionSuccessStatus: 200,
 };
@@ -43,7 +43,7 @@ const server = app.listen(PORT, () =>
 const io = require("socket.io")(server, {
   pingTimeout: 60000,
   cors: {
-    origin: "mern-stack-chat-app-sxw5.vercel.app",
+    origin: "http://localhost:3000",
   },
 });
 
