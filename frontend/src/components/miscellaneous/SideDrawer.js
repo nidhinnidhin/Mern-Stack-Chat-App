@@ -18,6 +18,13 @@ import {
   Tooltip,
   useDisclosure,
   useToast,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
+  ModalFooter,
 } from "@chakra-ui/react";
 import { BellIcon, ChevronDownIcon } from "@chakra-ui/icons";
 import React, { useState } from "react";
@@ -128,6 +135,7 @@ const SideDrawer = () => {
 
   return (
     <>
+    
       <Box
         display="flex"
         justifyContent="space-between"

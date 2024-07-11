@@ -72,6 +72,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   };
 
   useEffect(() => {
+    
     socket = io(ENDPOINT);
     socket.emit("setup", user);
     socket.on("connected", () => setSocketConnected(true));
@@ -111,7 +112,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
           content: newMessage,
           chatId: selectedChat._id,
         });
-        console.log(data);
+        console.log("dataaaaaaa",data);
 
         socket.emit("new message", data);
 

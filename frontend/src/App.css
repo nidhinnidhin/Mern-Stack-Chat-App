@@ -3,7 +3,7 @@
 .App{
     height: 100vh;
     display: flex;
-    background-image: url('./background.png');
+    background-image: url('./chatbackground.jpg');
     background-size: cover;
     background-position: center;
 }
