@@ -12,7 +12,7 @@ const { notFound, errorHandler } = require("./middlewares/errorMiddleware");
 dotenv.config();
 
 const corsOptions = {
-  origin: "https://mern-stack-chat-app-1.onrender.com",
+  origin: "https://mern-stack-chat-app-wu4f.onrender.com",
   credentials: true,
   optionSuccessStatus: 200,
 };
@@ -43,7 +43,7 @@ const server = app.listen(PORT, () =>
 const io = require("socket.io")(server, {
   pingTimeout: 60000,
   cors: {
-    origin: "https://mern-stack-chat-app-1.onrender.com",
+    origin: "https://mern-stack-chat-app-wu4f.onrender.com",
   },
 });
 
