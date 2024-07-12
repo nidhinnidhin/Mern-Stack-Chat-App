@@ -1,5 +1,5 @@
 import { ViewIcon } from "@chakra-ui/icons";
-import { Button, IconButton, Image, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Text, useDisclosure } from "@chakra-ui/react";
+import { Button, IconButton, Image, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Text, Tooltip, useDisclosure } from "@chakra-ui/react";
 import React from "react";
 
 const ProfileModal = ({ user, children }) => {
@@ -9,11 +9,13 @@ const ProfileModal = ({ user, children }) => {
       {children ? (
         <span onClick={onOpen}>{children}</span>
       ) : (
+        <Tooltip label='View info' placement='bottom' hasArrow>
         <IconButton
           display={{ base: "flex" }}
           icon={<ViewIcon />}
           onClick={onOpen}
-        />
+          />
+          </Tooltip>
       )}
       <Modal size="lg" isOpen={isOpen} onClose={onClose} isCentered>
         <ModalOverlay />

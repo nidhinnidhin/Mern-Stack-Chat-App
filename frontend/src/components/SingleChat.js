@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { ChatState } from "../Context/ChatProvider";
 import {
   Box,
+  Button,
   FormControl,
   IconButton,
   Input,
@@ -20,8 +21,11 @@ import ScrollableChat from "./ScrollableChat";
 import io from "socket.io-client";
 import Lottie from "react-lottie";
 import animationData from "../animations/typing.json";
+import SendIcon from "@mui/icons-material/Send";
+import { Tooltip } from "@chakra-ui/react";
 
-const ENDPOINT = "https://mern-stack-chat-app-wu4f.onrender.com";
+// const ENDPOINT = "https://mern-stack-chat-app-wu4f.onrender.com";
+const ENDPOINT = "http://localhost:5000";
 var socket, selectedChatCompare;
 
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
@@ -33,7 +37,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const [isTyping, setIsTyping] = useState(false);
 
   const defaultOption = {
-    loop:true,
+    loop: true,
     autoplay: true,
     animationData: animationData,
     rendererSettings: {
@@ -41,7 +45,8 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     },
   };
 
-  const { user, selectedChat, setSelectedChat, notification, setNotification } = ChatState();
+  const { user, selectedChat, setSelectedChat, notification, setNotification } =
+    ChatState();
 
   const toast = useToast();
 
@@ -72,7 +77,6 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   };
 
   useEffect(() => {
-    
     socket = io(ENDPOINT);
     socket.emit("setup", user);
     socket.on("connected", () => setSocketConnected(true));
@@ -85,17 +89,15 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     selectedChatCompare = selectedChat;
   }, [selectedChat]);
 
-  
-
   useEffect(() => {
     socket.on("message recieved", (newMessageRecieved) => {
       if (
         !selectedChatCompare ||
         selectedChatCompare._id !== newMessageRecieved.chat._id
       ) {
-        if(!notification.includes(newMessageRecieved)){
+        if (!notification.includes(newMessageRecieved)) {
           setNotification([newMessageRecieved, ...notification]);
-          setFetchAgain(!fetchAgain)
+          setFetchAgain(!fetchAgain);
         }
       } else {
         setMessages([...messages, newMessageRecieved]);
@@ -112,7 +114,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
           content: newMessage,
           chatId: selectedChat._id,
         });
-        console.log("dataaaaaaa",data);
+        console.log("dataaaaaaa", data);
 
         socket.emit("new message", data);
 
@@ -127,6 +129,31 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
           position: "top",
         });
       }
+    }
+  };
+
+  const handleSendMessage = async () => {
+    socket.emit("stop typing", selectedChat._id);
+    try {
+      setNewMessage("");
+      const { data } = await axiosReqWithToken.post("/api/message", {
+        content: newMessage,
+        chatId: selectedChat._id,
+      });
+      console.log("dataaaaaaa", data);
+
+      socket.emit("new message", data);
+
+      setMessages([...messages, data]);
+    } catch (error) {
+      toast({
+        title: "Error occured!",
+        description: "Failed to send message",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+        position: "top",
+      });
     }
   };
 
@@ -212,14 +239,23 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 <ScrollableChat messages={messages} />
               </div>
             )}
-            <FormControl onKeyDown={sendMessage} isRequired mt={3}>
-              {isTyping ? <div>
-              <Lottie
-              options={defaultOption}
-                width={70}
-                style={{marginBottom: 15, marginLeft: 0}}
-              />
-              </div> : <></>}
+            <FormControl
+              onKeyDown={sendMessage}
+              isRequired
+              mt={3}
+              display="flex"
+            >
+              {isTyping ? (
+                <div>
+                  <Lottie
+                    options={defaultOption}
+                    width={70}
+                    style={{ marginBottom: 15, marginLeft: 0 }}
+                  />
+                </div>
+              ) : (
+                <></>
+              )}
               <Input
                 variant="filled"
                 bg="#E0E0E0"
@@ -227,6 +263,15 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 onChange={typingHandler}
                 value={newMessage}
               />
+              <Tooltip label="Send message" placement="top-start">
+                <Button
+                  colorScheme="teal"
+                  size="md"
+                  onClick={handleSendMessage}
+                >
+                  <SendIcon />
+                </Button>
+              </Tooltip>
             </FormControl>
           </Box>
         </>

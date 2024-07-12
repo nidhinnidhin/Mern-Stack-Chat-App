@@ -43,6 +43,11 @@ const SideDrawer = () => {
   const [loading, setLoading] = useState(false);
   const [loadingChat, setLoadingChat] = useState();
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const {
+    isOpen: isOpenModal,
+    onOpen: onOpenModal,
+    onClose: onCloseModal,
+  } = useDisclosure();
 
   const {
     user,
@@ -135,7 +140,6 @@ const SideDrawer = () => {
 
   return (
     <>
-    
       <Box
         display="flex"
         justifyContent="space-between"
@@ -160,7 +164,9 @@ const SideDrawer = () => {
           <Menu>
             <MenuButton p={1}>
               {notification.length > 0 && (
-                <Button bg="#E53E3E" color="white">{notification.length} Messages</Button>
+                <Button bg="#E53E3E" color="white">
+                  {notification.length} Messages
+                </Button>
               )}
             </MenuButton>
             <MenuList pl={2}>
@@ -194,7 +200,27 @@ const SideDrawer = () => {
                 <MenuItem>My Profile</MenuItem>
               </ProfileModal>
               <MenuDivider />
-              <MenuItem onClick={logoutHandler}>Logout</MenuItem>
+              <MenuItem onClick={onOpenModal}>Logout</MenuItem>
+              <Modal isOpen={isOpenModal} onClose={onCloseModal}>
+                <ModalOverlay />
+                <ModalContent maxWidth="400px">
+                  <ModalHeader textAlign="center">{user.name}</ModalHeader>
+                  <ModalCloseButton />
+                  <ModalBody>
+                    <Box textAlign="center">
+                      Are you sure, you want to logout?
+                    </Box>
+                  </ModalBody>
+                  <ModalFooter justifyContent="center">
+                    <Button colorScheme="red" mr={3} onClick={logoutHandler}>
+                      Logout
+                    </Button>
+                    <Button colorScheme="blue" onClick={onCloseModal}>
+                      Cancel
+                    </Button>
+                  </ModalFooter>
+                </ModalContent>
+              </Modal>
             </MenuList>
           </Menu>
         </div>

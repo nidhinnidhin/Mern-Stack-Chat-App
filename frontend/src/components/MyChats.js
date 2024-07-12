@@ -1,25 +1,37 @@
-import React, { useEffect, useState } from 'react'
-import { ChatState } from '../Context/ChatProvider'
-import { Box, Button, Stack, Text, useToast } from '@chakra-ui/react';
-import { axiosReqWithToken } from '../api/axios';
-import { AddIcon } from '@chakra-ui/icons';
-import ChatLoading from './ChatLoading';
-import { getSender } from '../config/ChatLogics';
-import GroupChatModal from './miscellaneous/GroupChatModal';
+import React, { useEffect, useState } from "react";
+import { ChatState } from "../Context/ChatProvider";
+import {
+  Avatar,
+  Box,
+  Button,
+  HStack,
+  Stack,
+  Tag,
+  TagLabel,
+  TagRightIcon,
+  Text,
+  useToast,
+} from "@chakra-ui/react";
+import { axiosReqWithToken } from "../api/axios";
+import { AddIcon, ChatIcon } from "@chakra-ui/icons";
+import ChatLoading from "./ChatLoading";
+import { getSender, getSenderFull } from "../config/ChatLogics";
+import GroupChatModal from "./miscellaneous/GroupChatModal";
 
-const MyChats = ({fetchAgain}) => {
+const MyChats = ({ fetchAgain }) => {
   const [loggedUser, setLoggedUser] = useState();
-  const {selectedChat, setSelectedChat, user, chats, setChats} = ChatState();
+  const { selectedChat, setSelectedChat, user, chats, setChats } = ChatState();
 
   const toast = useToast();
 
-  const fetchChats = async() => {
-    try{
-      const { data } = await axiosReqWithToken.get("/api/chat/fetchchats")
+  const fetchChats = async () => {
+    try {
+      const { data } = await axiosReqWithToken.get("/api/chat/fetchchats");
       setChats(data);
-    }catch(error){
+      console.log(data);
+    } catch (error) {
       toast({
-        title: "Error occured!",
+        title: "Error occurred!",
         description: "Failed to load the chats",
         status: "error",
         duration: 3000,
@@ -32,10 +44,10 @@ const MyChats = ({fetchAgain}) => {
   useEffect(() => {
     setLoggedUser(JSON.parse(localStorage.getItem("userInfo")));
     fetchChats();
-  },[fetchAgain])
+  }, [fetchAgain]);
 
   return (
-    <Box 
+    <Box
       display={{ base: selectedChat ? "none" : "flex", md: "flex" }}
       flexDir="column"
       alignItems="center"
@@ -59,8 +71,8 @@ const MyChats = ({fetchAgain}) => {
         <GroupChatModal>
           <Button
             display="flex"
-            fontSize={{base: "17px", md: "10px", lg: "17px"}}
-            rightIcon={<AddIcon/>}
+            fontSize={{ base: "17px", md: "10px", lg: "17px" }}
+            rightIcon={<AddIcon />}
           >
             New Group Chat
           </Button>
@@ -76,14 +88,10 @@ const MyChats = ({fetchAgain}) => {
         borderRadius="lg"
         overflowY="hidden"
       >
-        {
-        chats ? 
-        (
-          <Stack
-            overflowY="scroll"
-          >
+        {chats ? (
+          <Stack overflowY="scroll">
             {chats.map((chat) => (
-              <Box 
+              <Box
                 onClick={() => setSelectedChat(chat)}
                 cursor="pointer"
                 bg={selectedChat === chat ? "#38B2AC" : "#E8E8E8"}
@@ -92,22 +100,52 @@ const MyChats = ({fetchAgain}) => {
                 py={2}
                 borderRadius="lg"
                 key={chat._id}
+                display="flex"
+                alignItems="center"
               >
-                <Text>
-                  {!chat.isGroupChat ? (
-                    getSender(loggedUser, chat.users)
-                  ) : (chat.chatName)}
-                </Text>
+                {!chat.isGroupChat ? (
+                  <>
+                    <Avatar
+                      mr={2}
+                      size="sm"
+                      cursor="pointer"
+                      name={getSender(loggedUser, chat.users)}
+                      src={getSenderFull(loggedUser, chat.users).pic}
+                    />
+                    <Text>{getSender(loggedUser, chat.users)}</Text>
+                  </>
+                ) : (
+                  <div>
+                    <div style={{display:"flex", alignItems:"center"}}>
+                      <Avatar
+                        mr={2}
+                        size="sm"
+                        cursor="pointer"
+                        name="Group"
+                        src="https://i.pinimg.com/236x/15/40/a5/1540a5213aefba221f16ef82a9b2fa77.jpg"
+                      />
+                      <div >
+
+                    <Text>{chat.chatName}</Text>
+                    <HStack >
+                        <Tag variant="outline" colorScheme="blue" fontSize="10px">
+                          <TagLabel>Group</TagLabel>
+                          <TagRightIcon as={ChatIcon} />
+                        </Tag>
+                      </HStack>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </Box>
             ))}
           </Stack>
         ) : (
-          <ChatLoading/>
-        )
-        }
+          <ChatLoading />
+        )}
       </Box>
     </Box>
-  )
-}
+  );
+};
 
-export default MyChats
+export default MyChats;
