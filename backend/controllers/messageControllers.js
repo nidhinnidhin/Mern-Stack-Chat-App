@@ -34,6 +34,35 @@ const sendMessage = asyncHandler(async (req, res) => {
   }
 });
 
+const sendMedia = asyncHandler(async (req, res) => {
+  const {media, chatId} = req.body;
+  if (!media || !chatId) {
+    console.log("Invalid data");
+    return res.sendStatus(400);
+  }
+  var newMessage = {
+    sender: req.user._id,
+    content: media,
+    chat: chatId,
+  };
+  try {
+    var message = await Message.create(newMessage);
+    message = await message.populate("sender", "name pic");
+    message = await message.populate("chat");
+    message = await User.populate(message, {
+      path: "chat.users",
+      select: "name pic email",
+    });
+    await Chat.findByIdAndUpdate(req.body.chatId, {
+      latestMessage: message,
+    });
+    res.json(message);
+  } catch (error) {
+    res.status(400);
+    throw new Error(error.message);
+  }
+})
+
 const allMessages = asyncHandler(async (req, res) => {
   try {
     const messages = await Message.find({ chat: req.params.chatId })
@@ -46,4 +75,4 @@ const allMessages = asyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { sendMessage, allMessages };
+module.exports = { sendMessage, allMessages, sendMedia };

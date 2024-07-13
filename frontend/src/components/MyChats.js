@@ -18,6 +18,7 @@ import ChatLoading from "./ChatLoading";
 import { getSender, getSenderFull } from "../config/ChatLogics";
 import GroupChatModal from "./miscellaneous/GroupChatModal";
 
+import groupImage from "../image/group.jpg"
 const MyChats = ({ fetchAgain }) => {
   const [loggedUser, setLoggedUser] = useState();
   const { selectedChat, setSelectedChat, user, chats, setChats } = ChatState();
@@ -122,7 +123,7 @@ const MyChats = ({ fetchAgain }) => {
                         size="sm"
                         cursor="pointer"
                         name="Group"
-                        src="https://i.pinimg.com/236x/15/40/a5/1540a5213aefba221f16ef82a9b2fa77.jpg"
+                        src={groupImage}
                       />
                       <div >
 

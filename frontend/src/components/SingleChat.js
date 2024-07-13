@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState  } from "react";
 import { ChatState } from "../Context/ChatProvider";
 import {
   Box,
@@ -11,7 +11,7 @@ import {
   Toast,
   useToast,
 } from "@chakra-ui/react";
-import { ArrowBackIcon } from "@chakra-ui/icons";
+import { ArrowBackIcon, AttachmentIcon } from "@chakra-ui/icons";
 import { getSender, getSenderFull } from "../config/ChatLogics";
 import ProfileModal from "./miscellaneous/ProfileModal";
 import UpdateGroupChatModal from "./miscellaneous/UpdateGroupChatModal";
@@ -24,8 +24,7 @@ import animationData from "../animations/typing.json";
 import SendIcon from "@mui/icons-material/Send";
 import { Tooltip } from "@chakra-ui/react";
 
-// const ENDPOINT = "https://mern-stack-chat-app-wu4f.onrender.com";
-const ENDPOINT = "http://localhost:5000";
+const ENDPOINT = "https://mern-stack-chat-app-wu4f.onrender.com";
 var socket, selectedChatCompare;
 
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
@@ -35,6 +34,9 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const [socketConnected, setSocketConnected] = useState(false);
   const [typing, setTyping] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [image, setImage] = useState();
+  const [preview, setPreview] = useState();
+  const [fileType, setFileType] = useState("");
 
   const defaultOption = {
     loop: true,
@@ -86,6 +88,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
   useEffect(() => {
     fetchMessages();
+    // fetchMediaMessages();
     selectedChatCompare = selectedChat;
   }, [selectedChat]);
 
@@ -159,8 +162,6 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
   const typingHandler = (e) => {
     setNewMessage(e.target.value);
-
-    // typing indicator logic
     if (!socketConnected) return;
     if (!typing) {
       setTyping(true);
@@ -179,6 +180,111 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
       }
     }, timerLength);
   };
+
+  const imageHandler = (file) => {
+    setPreview(URL.createObjectURL(file));
+    setFileType(file.type);
+    setLoading(true);
+    if (file === undefined) {
+      toast({
+        title: "File is undefined",
+        status: "warning",
+        duration: 5000,
+        isClosable: true,
+        position: "top",
+      });
+      return;
+    }
+
+    const validImageTypes = ["image/jpeg", "image/jpg", "image/png"];
+    const validVideoTypes = ["video/mp4", "video/mov", "video/avi"];
+
+    const data = new FormData();
+    data.append("file", file);
+    data.append("upload_preset", "chat-app");
+    data.append("cloud_name", "dirqllhq2");
+
+    let uploadUrl = "";
+    if (validImageTypes.includes(file.type)) {
+      uploadUrl = "https://api.cloudinary.com/v1_1/dirqllhq2/image/upload";
+    } else if (validVideoTypes.includes(file.type)) {
+      uploadUrl = "https://api.cloudinary.com/v1_1/dirqllhq2/video/upload";
+    } else {
+      toast({
+        title: "File type is not valid",
+        status: "warning",
+        duration: 5000,
+        isClosable: true,
+        position: "top",
+      });
+      setLoading(false);
+      return;
+    }
+
+    fetch(uploadUrl, {
+      method: "post",
+      body: data,
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setImage(data.url.toString());
+        console.log(data.url.toString());
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.log(err);
+        setLoading(false);
+      });
+  };
+
+  const handleSendMedia = async () => {
+    socket.emit("stop typing", selectedChat._id);
+    try {
+      setNewMessage("");
+      const { data } = await axiosReqWithToken.post("/api/message/sendimage", {
+        media: image,
+        chatId: selectedChat._id,
+      });
+
+      socket.emit("new message", data);
+      setMessages([...messages, data]);
+      setPreview("");
+    } catch (error) {
+      toast({
+        title: "Error occured!",
+        description: "Failed to send image",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+        position: "top",
+      });
+      return;
+    }
+  };
+
+  // const fetchMediaMessages = async () => {
+  //   if (!selectedChat) {
+  //     return;
+  //   }
+  //   setLoading(true);
+  //   try {
+  //     const { data } = await axiosReqWithToken.get(
+  //       `/api/message/media/${selectedChat._id}`
+  //     );
+  //     console.log("image media---->",data);
+  //     setMediaMessages(data);
+  //     setLoading(false);
+  //   } catch (error) {
+  //     toast({
+  //       title: "Error occurred!",
+  //       description: "Failed to load the media messages",
+  //       status: "error",
+  //       duration: 3000,
+  //       isClosable: true,
+  //       position: "top",
+  //     });
+  //   }
+  // };
 
   return (
     <>
@@ -239,6 +345,71 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 <ScrollableChat messages={messages} />
               </div>
             )}
+            {/* <FormControl>
+              <Input
+                type="file"
+                p={1.5}
+                accept="image/*,video/*"
+                onChange={(e) => imageHandler(e.target.files[0])}
+              />
+              <Button colorScheme="teal" size="md" onClick={handleSendMedia}>
+                <SendIcon />
+              </Button>
+            </FormControl> */}
+            {preview && (
+              <Box
+                style={{
+                  width: "fit-content",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                <div>
+                  {fileType.startsWith("image/") ? (
+                    <img
+                      src={preview}
+                      height={300}
+                      width={300}
+                      style={{ borderRadius: "10px" }}
+                      alt="preview"
+                    />
+                  ) : (
+                    <video
+                      src={preview}
+                      height={300}
+                      width={300}
+                      style={{ borderRadius: "10px" }}
+                      controls
+                    >
+                      Your browser does not support the video tag.
+                    </video>
+                  )}
+                </div>
+                <Tooltip label="Send media" fontSize="md">
+                  {loading ? (
+                    <Spinner
+                      size="xl"
+                      w={10}
+                      h={10}
+                      alignSelf="center"
+                      margin="0px 10px"
+                    />
+                  ) : (
+                    <Button
+                      height="50px"
+                      width="50px"
+                      borderRadius="50%"
+                      colorScheme="teal"
+                      variant="outline"
+                      margin="0px 10px"
+                      onClick={handleSendMedia}
+                    >
+                      <SendIcon />
+                    </Button>
+                  )}
+                </Tooltip>
+              </Box>
+            )}
             <FormControl
               onKeyDown={sendMessage}
               isRequired
@@ -256,6 +427,24 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
               ) : (
                 <></>
               )}
+
+              <Button
+                as="label"
+                htmlFor="file"
+                variant="outline"
+                colorScheme="teal"
+                cursor="pointer"
+              >
+                <AttachmentIcon />
+                <input
+                  type="file"
+                  id="file"
+                  accept="image/*,video/*"
+                  onChange={(e) => imageHandler(e.target.files[0])}
+                  style={{ display: "none" }}
+                />
+              </Button>
+
               <Input
                 variant="filled"
                 bg="#E0E0E0"
@@ -263,15 +452,17 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 onChange={typingHandler}
                 value={newMessage}
               />
-              <Tooltip label="Send message" placement="top-start">
-                <Button
-                  colorScheme="teal"
-                  size="md"
-                  onClick={handleSendMessage}
-                >
-                  <SendIcon />
-                </Button>
-              </Tooltip>
+              {!preview && (
+                <Tooltip label="Send message" placement="top-start">
+                  <Button
+                    colorScheme="teal"
+                    size="md"
+                    onClick={handleSendMessage}
+                  >
+                    <SendIcon />
+                  </Button>
+                </Tooltip>
+              )}
             </FormControl>
           </Box>
         </>
