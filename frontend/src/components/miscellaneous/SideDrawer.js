@@ -35,7 +35,16 @@ import ChatLoading from "../ChatLoading";
 import { axiosReqWithContentType, axiosReqWithToken } from "../../api/axios";
 import UserListItem from "../UserAvatar/UserListItem";
 import axios from "axios";
+import NotificationsIcon from "@mui/icons-material/Notifications";
 import { getSender } from "../../config/ChatLogics";
+import Badge from "@mui/material/Badge";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+
+const theme = createTheme({
+  typography: {
+    fontFamily: "Roboto, sans-serif",
+  },
+});
 
 const SideDrawer = () => {
   const [search, setSearch] = useState("");
@@ -106,23 +115,32 @@ const SideDrawer = () => {
     console.log(user.token);
     try {
       setLoadingChat(true);
+      const userAlreadyExists = chats.some(chat => {
+        if (!chat.isGroupChat) {
+          return chat.users.some(chatUser => chatUser._id === userId);
+        }
+        return false;
+      });
+  
+      if (userAlreadyExists) {
+        toast({
+          title: "User already exists",
+          description: "This user is already in your chat list",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+          position: "top",
+        });
+        onClose()
+        setLoadingChat(false);
+        return;
+      }
+  
       const { data } = await axiosReqWithToken.post("/api/chat", { userId });
-
-      const config = {
-        headers: {
-          "Content-type": "application/json",
-          Authorization: `Bearer ${user.token}`,
-        },
-      };
-
-      // const { data } = await axios.post(
-      //   "http://127.0.0.1:5000/api/chat",
-      //   { userId },
-      //   config
-      // );
-
+      onClose();
+  
       console.log(data);
-
+  
       if (!chats.find((c) => c._id === data._id)) setChats([data, ...chats]);
       setSelectedChat(data);
       setLoadingChat(false);
@@ -135,8 +153,10 @@ const SideDrawer = () => {
         isClosable: true,
         position: "bottom-left",
       });
+      setLoadingChat(false);
     }
   };
+  
 
   return (
     <>
@@ -162,13 +182,15 @@ const SideDrawer = () => {
         </Text>
         <div>
           <Menu>
-            <MenuButton p={1}>
-              {notification.length > 0 && (
-                <Button bg="#E53E3E" color="white">
-                  {notification.length} Messages
-                </Button>
-              )}
-            </MenuButton>
+            <Tooltip label="Notification" hasArrow placement="bottom">
+              <MenuButton p={2}>
+                <ThemeProvider theme={theme}>
+                  <Badge badgeContent={notification.length} color="error">
+                    <NotificationsIcon />
+                  </Badge>
+                </ThemeProvider>
+              </MenuButton>
+            </Tooltip>
             <MenuList pl={2}>
               {!notification.length && "No New Messages"}
               {notification.map((n) => (
