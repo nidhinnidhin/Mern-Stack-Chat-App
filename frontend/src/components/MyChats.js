@@ -10,20 +10,32 @@ import {
   TagLabel,
   TagRightIcon,
   Text,
+  useDisclosure,
   useToast,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalBody,
+  ModalCloseButton,
 } from "@chakra-ui/react";
 import { axiosReqWithToken } from "../api/axios";
 import { AddIcon, ChatIcon } from "@chakra-ui/icons";
 import ChatLoading from "./ChatLoading";
 import { getSender, getSenderFull } from "../config/ChatLogics";
 import GroupChatModal from "./miscellaneous/GroupChatModal";
+import groupImage from "../image/group.jpg";
+import io from "socket.io-client";
 
-import groupImage from "../image/group.jpg"
+const ENDPOINT = "https://mern-stack-chat-app-wu4f.onrender.com";
+// const ENDPOINT = "http://localhost:5000";
+let socket;
+
 const MyChats = ({ fetchAgain }) => {
   const [loggedUser, setLoggedUser] = useState();
   const { selectedChat, setSelectedChat, user, chats, setChats } = ChatState();
-
   const toast = useToast();
+  const [preview, setPreview] = useState("");
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   const fetchChats = async () => {
     try {
@@ -45,7 +57,50 @@ const MyChats = ({ fetchAgain }) => {
   useEffect(() => {
     setLoggedUser(JSON.parse(localStorage.getItem("userInfo")));
     fetchChats();
-  }, [fetchAgain]);
+
+    socket = io(ENDPOINT);
+    socket.emit("setup", user);
+    socket.on("connected", () => console.log("Connected to socket.io"));
+
+    socket.on("message recieved", (newMessage) => {
+      const updatedChats = chats.map((chat) => {
+        if (chat._id === newMessage.chat._id) {
+          return {
+            ...chat,
+            latestMessage: newMessage,
+          };
+        }
+        return chat;
+      });
+      setChats(updatedChats);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [fetchAgain, user, chats]);
+
+  const getLatestMessage = (chat) => {
+    const latestMessage = chat.latestMessage;
+    if (latestMessage) {
+      const { content } = latestMessage;
+      const isMedia = content.startsWith("http://res.cloudinary.com");
+      if (isMedia) {
+        if (/\.(jpeg|jpg|gif|png)$/.test(content)) {
+          return "Sent an image";
+        } else if (/\.(mp4|mov|avi)$/.test(content)) {
+          return "Sent a video";
+        }
+      }
+      return content;
+    }
+    return "";
+  };
+
+  const profileHandler = (profile) => {
+    onOpen();
+    setPreview(profile);
+  };
 
   return (
     <Box
@@ -58,6 +113,20 @@ const MyChats = ({ fetchAgain }) => {
       borderRadius="lg"
       borderWidth="1px"
     >
+      <Modal isOpen={isOpen} onClose={onClose} isCentered>
+        <ModalOverlay bg="rgba(0, 0, 0, 0.5)" />
+        <ModalContent
+          bg="transparent"
+          alignItems="center"
+          justifyContent="center"
+          boxShadow="none"
+        >
+          <ModalCloseButton color="white" />
+          <ModalBody>
+            <img src={preview} style={{borderRadius:"10px"}} height={500} width={400} />
+          </ModalBody>
+        </ModalContent>
+      </Modal>
       <Box
         pb={3}
         px={3}
@@ -102,42 +171,61 @@ const MyChats = ({ fetchAgain }) => {
                 borderRadius="lg"
                 key={chat._id}
                 display="flex"
-                alignItems="center"
+                flexDir="column"
               >
-                {!chat.isGroupChat ? (
-                  <>
-                    <Avatar
-                      mr={2}
-                      size="sm"
-                      cursor="pointer"
-                      name={getSender(loggedUser, chat.users)}
-                      src={getSenderFull(loggedUser, chat.users).pic}
-                    />
-                    <Text>{getSender(loggedUser, chat.users)}</Text>
-                  </>
-                ) : (
-                  <div>
-                    <div style={{display:"flex", alignItems:"center"}}>
+                <Box display="flex" alignItems="center">
+                  {!chat.isGroupChat ? (
+                    <>
+                      <Avatar
+                        mr={2}
+                        size="sm"
+                        cursor="pointer"
+                        name={getSender(loggedUser, chat.users)}
+                        src={getSenderFull(loggedUser, chat.users).pic}
+                        onClick={() =>
+                          profileHandler(
+                            getSenderFull(loggedUser, chat.users).pic
+                          )
+                        }
+                      />
+                      <Box>
+                        <Text>{getSender(loggedUser, chat.users)}</Text>
+                        <Text fontSize="xs" color="gray.500">
+                          {getLatestMessage(chat)}
+                        </Text>
+                      </Box>
+                    </>
+                  ) : (
+                    <Box display="flex" alignItems="center">
                       <Avatar
                         mr={2}
                         size="sm"
                         cursor="pointer"
                         name="Group"
                         src={groupImage}
+                        onClick={() =>
+                          profileHandler(groupImage)
+                        }
                       />
-                      <div >
-
-                    <Text>{chat.chatName}</Text>
-                    <HStack >
-                        <Tag variant="outline" colorScheme="blue" fontSize="10px">
-                          <TagLabel>Group</TagLabel>
-                          <TagRightIcon as={ChatIcon} />
-                        </Tag>
-                      </HStack>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                      <Box>
+                        <Text>{chat.chatName}</Text>
+                        <HStack>
+                          <Tag
+                            variant="outline"
+                            colorScheme="blue"
+                            fontSize="10px"
+                          >
+                            <TagLabel>Group</TagLabel>
+                            <TagRightIcon as={ChatIcon} />
+                          </Tag>
+                        </HStack>
+                        <Text fontSize="xs" color="gray.500">
+                          {getLatestMessage(chat)}
+                        </Text>
+                      </Box>
+                    </Box>
+                  )}
+                </Box>
               </Box>
             ))}
           </Stack>

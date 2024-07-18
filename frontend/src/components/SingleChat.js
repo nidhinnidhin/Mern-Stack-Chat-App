@@ -263,30 +263,6 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     }
   };
 
-  // const fetchMediaMessages = async () => {
-  //   if (!selectedChat) {
-  //     return;
-  //   }
-  //   setLoading(true);
-  //   try {
-  //     const { data } = await axiosReqWithToken.get(
-  //       `/api/message/media/${selectedChat._id}`
-  //     );
-  //     console.log("image media---->",data);
-  //     setMediaMessages(data);
-  //     setLoading(false);
-  //   } catch (error) {
-  //     toast({
-  //       title: "Error occurred!",
-  //       description: "Failed to load the media messages",
-  //       status: "error",
-  //       duration: 3000,
-  //       isClosable: true,
-  //       position: "top",
-  //     });
-  //   }
-  // };
-
   return (
     <>
       {selectedChat ? (
@@ -346,17 +322,6 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 <ScrollableChat messages={messages} />
               </div>
             )}
-            {/* <FormControl>
-              <Input
-                type="file"
-                p={1.5}
-                accept="image/*,video/*"
-                onChange={(e) => imageHandler(e.target.files[0])}
-              />
-              <Button colorScheme="teal" size="md" onClick={handleSendMedia}>
-                <SendIcon />
-              </Button>
-            </FormControl> */}
             {preview && (
               <Box
                 style={{

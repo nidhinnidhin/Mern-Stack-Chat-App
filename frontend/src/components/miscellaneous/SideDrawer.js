@@ -156,6 +156,32 @@ const SideDrawer = () => {
       setLoadingChat(false);
     }
   };
+
+  const searchHandler = async (query) => {
+    setSearch(query);
+    if (!query) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const { data } = await axiosReqWithToken.get(
+        `/api/user/searchusers?search=${search}`
+      );
+      setLoading(false);
+      setSearchResult(data);
+    } catch (error) {
+      toast({
+        title: "Error occurred!",
+        description: "Failed to load the search results",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+        position: "bottom-left",
+      });
+    }
+  };
+
   
 
   return (
@@ -257,7 +283,7 @@ const SideDrawer = () => {
                 placeholder="Search by name or email"
                 mr={2}
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => searchHandler(e.target.value)}
               />
               <Button onClick={handleSearch}>Go</Button>
             </Box>
