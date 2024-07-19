@@ -72,7 +72,9 @@ const ScrollableChat = ({ messages }) => {
 
   const downloadMedia = async (mediaUrl, fileName) => {
     try {
-      const response = await fetch(mediaUrl);
+      const secureUrl = mediaUrl.replace("http://", "https://");
+      const response = await fetch(secureUrl, { mode: 'cors' });
+      if (!response.ok) throw new Error('Network response was not ok');
       const blob = await response.blob();
       saveAs(blob, fileName || mediaUrl.split("/").pop());
     } catch (error) {
