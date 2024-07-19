@@ -24,8 +24,8 @@ import animationData from "../animations/typing.json";
 import SendIcon from "@mui/icons-material/Send";
 import { Tooltip } from "@chakra-ui/react";
 
-// const ENDPOINT = "https://mern-stack-chat-app-wu4f.onrender.com";
-const ENDPOINT = "http://localhost:5000";
+const ENDPOINT = "https://mern-stack-chat-app-wu4f.onrender.com";
+// const ENDPOINT = "http://localhost:5000";
 var socket, selectedChatCompare;
 
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
