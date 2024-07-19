@@ -376,14 +376,8 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 </Tooltip>
               </Box>
             )}
-            <FormControl
-              onKeyDown={sendMessage}
-              isRequired
-              mt={3}
-              display="flex"
-            >
-              {isTyping ? (
-                <div>
+            {isTyping ? (
+                <div style={{width:"100px"}}>
                   <Lottie
                     options={defaultOption}
                     width={70}
@@ -393,7 +387,12 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
               ) : (
                 <></>
               )}
-
+            <FormControl
+              onKeyDown={sendMessage}
+              isRequired
+              mt={3}
+              display="flex"
+            >
               <Button
                 as="label"
                 htmlFor="file"

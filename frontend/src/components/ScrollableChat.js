@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import ScrollableFeed from "react-scrollable-feed";
 import {
   isLastMessage,
@@ -21,8 +21,8 @@ import {
 } from "@chakra-ui/react";
 import { format, isToday } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
-import { useRef, useEffect } from "react";
 import { DownloadIcon } from "@chakra-ui/icons";
+import { saveAs } from 'file-saver';
 
 const ScrollableChat = ({ messages }) => {
   const { user } = ChatState();
@@ -74,15 +74,7 @@ const ScrollableChat = ({ messages }) => {
     try {
       const response = await fetch(mediaUrl);
       const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = fileName || mediaUrl.split("/").pop();
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
+      saveAs(blob, fileName || mediaUrl.split("/").pop());
     } catch (error) {
       console.error("Error downloading media:", error);
       toast({
@@ -95,6 +87,7 @@ const ScrollableChat = ({ messages }) => {
       });
     }
   };
+
   const showProfileImage = (profile) => {
     onOpenImage();
     setPreview(profile);
@@ -152,24 +145,24 @@ const ScrollableChat = ({ messages }) => {
         </Modal>
 
         <Modal isOpen={isOpenImage} onClose={onCloseImage} isCentered>
-        <ModalOverlay bg="rgba(0, 0, 0, 0.5)" />
-        <ModalContent
-          bg="transparent"
-          alignItems="center"
-          justifyContent="center"
-          boxShadow="none"
-        >
-          <ModalCloseButton color="white" />
-          <ModalBody>
-            <img
-              src={preview}
-              style={{ borderRadius: "10px" }}
-              height={500}
-              width={300}
-            />
-          </ModalBody>
-        </ModalContent>
-      </Modal>
+          <ModalOverlay bg="rgba(0, 0, 0, 0.5)" />
+          <ModalContent
+            bg="transparent"
+            alignItems="center"
+            justifyContent="center"
+            boxShadow="none"
+          >
+            <ModalCloseButton color="white" />
+            <ModalBody>
+              <img
+                src={preview}
+                style={{ borderRadius: "10px" }}
+                height={500}
+                width={300}
+              />
+            </ModalBody>
+          </ModalContent>
+        </Modal>
 
         {messages &&
           messages.map((m, i) => {
@@ -246,18 +239,20 @@ const ScrollableChat = ({ messages }) => {
                           }}
                         />
                       ) : (
-                        <video
-                          src={m.content}
-                          controls
-                          style={{
-                            maxWidth: "100%",
-                            maxHeight: "200px",
-                            borderRadius: "20px",
-                            cursor: "pointer",
-                          }}
-                        >
-                          Your browser does not support the video tag.
-                        </video>
+                        <div onClick={(e) => mediaHandler(m.content, e)}>
+                          <video
+                            src={m.content}
+                            controls
+                            style={{
+                              maxWidth: "100%",
+                              maxHeight: "200px",
+                              borderRadius: "20px",
+                              cursor: "pointer",
+                            }}
+                          >
+                            Your browser does not support the video tag.
+                          </video>
+                        </div>
                       )}
                       <span
                         style={{
