@@ -26,8 +26,8 @@ import GroupChatModal from "./miscellaneous/GroupChatModal";
 import groupImage from "../image/group.jpg";
 import io from "socket.io-client";
 
-const ENDPOINT = "https://mern-stack-chat-app-wu4f.onrender.com";
-// const ENDPOINT = "http://localhost:5000";
+// const ENDPOINT = "https://mern-stack-chat-app-wu4f.onrender.com";
+const ENDPOINT = "http://localhost:5000";
 let socket;
 
 const MyChats = ({ fetchAgain }) => {

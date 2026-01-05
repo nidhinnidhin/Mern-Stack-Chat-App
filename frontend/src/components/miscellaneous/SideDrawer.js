@@ -208,32 +208,55 @@ const SideDrawer = () => {
         </Text>
         <div>
           <Menu>
-            <Tooltip label="Notification" hasArrow placement="bottom">
-              <MenuButton p={2}>
-                <ThemeProvider theme={theme}>
-                  <Badge badgeContent={notification.length} color="error">
-                    <NotificationsIcon />
-                  </Badge>
-                </ThemeProvider>
-              </MenuButton>
-            </Tooltip>
-            <MenuList pl={2}>
-              {!notification.length && "No New Messages"}
-              {notification.map((n) => (
-                <MenuItem
-                  key={n._id}
-                  onClick={() => {
-                    setSelectedChat(n.chat);
-                    setNotification(notification.filter((noti) => noti != n));
-                  }}
-                >
-                  {n.chat.isGroupChat
-                    ? `New message in ${n.chat.chatName}`
-                    : `New message from${getSender(user, n.chat.users)}`}
-                </MenuItem>
-              ))}
-            </MenuList>
-          </Menu>
+  <Tooltip label="Notification" hasArrow placement="bottom">
+    <MenuButton p={2}>
+      <ThemeProvider theme={theme}>
+        <Badge badgeContent={notification.length} color="error">
+          <NotificationsIcon />
+        </Badge>
+      </ThemeProvider>
+    </MenuButton>
+  </Tooltip>
+  <MenuList pl={2}>
+    {!notification.length && "No New Messages"}
+    {/* Group notifications by chat */}
+    {Object.values(
+      notification.reduce((acc, n) => {
+        const chatId = n.chat._id;
+        if (!acc[chatId]) {
+          acc[chatId] = {
+            chat: n.chat,
+            count: 1,
+            lastMessage: n,
+          };
+        } else {
+          acc[chatId].count += 1;
+          acc[chatId].lastMessage = n;
+        }
+        return acc;
+      }, {})
+    ).map((groupedNotif) => (
+      <MenuItem
+        key={groupedNotif.chat._id}
+        onClick={() => {
+          setSelectedChat(groupedNotif.chat);
+          // Remove all notifications for this chat
+          setNotification(
+            notification.filter((n) => n.chat._id !== groupedNotif.chat._id)
+          );
+        }}
+      >
+        {groupedNotif.chat.isGroupChat
+          ? `${groupedNotif.count} new message${
+              groupedNotif.count > 1 ? "s" : ""
+            } in ${groupedNotif.chat.chatName}`
+          : `${groupedNotif.count} new message${
+              groupedNotif.count > 1 ? "s" : ""
+            } from ${getSender(user, groupedNotif.chat.users)}`}
+      </MenuItem>
+    ))}
+  </MenuList>
+</Menu>
           <Menu>
             <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
               <Avatar

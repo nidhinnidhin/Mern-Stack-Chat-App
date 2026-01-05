@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import ScrollableFeed from "react-scrollable-feed";
+import io from "socket.io-client";
 import {
   isLastMessage,
   isSameSender,
@@ -24,8 +25,11 @@ import { toZonedTime } from "date-fns-tz";
 import { DownloadIcon } from "@chakra-ui/icons";
 import { saveAs } from 'file-saver';
 
+const ENDPOINT = "http://localhost:5000";
+let socket;
+
 const ScrollableChat = ({ messages }) => {
-  const { user } = ChatState();
+  const { user, selectedChat } = ChatState();
   const scrollableContainer = useRef(null);
   const [preview, setPreview] = useState("");
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -59,7 +63,24 @@ const ScrollableChat = ({ messages }) => {
       scrollableContainer.current.scrollTop =
         scrollableContainer.current.scrollHeight;
     }
-  }, [messages]);
+
+    // Initialize socket connection
+    socket = io(ENDPOINT);
+    socket.emit("setup", user);
+    socket.on("connected", () => console.log("Connected to socket.io"));
+
+    // Listen for group chat events
+    socket.on("group update", (message) => {
+      if (selectedChat && message.chat._id === selectedChat._id) {
+        // Handle system messages in real-time
+        messages.push(message);
+      }
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [messages, selectedChat, user]);
 
   let lastRenderedDate = "";
 
@@ -271,23 +292,21 @@ const ScrollableChat = ({ messages }) => {
                   ) : (
                     <span
                       style={{
-                        backgroundColor: `${
-                          m.sender._id === user._id ? "#BEE3F8" : "#B9F5D0"
-                        }`,
+                        backgroundColor: m.content.includes(" left the group") || 
+                          m.content.includes(" was removed from the group") || 
+                          m.content.includes(" has been added to the group") || 
+                          m.content.includes("Group name was changed to") 
+                          ? "#E2E8F0" 
+                          : m.sender._id === user._id ? "#BEE3F8" : "#B9F5D0",
                         borderRadius: "20px",
                         padding: "5px 15px",
                         maxWidth: "75%",
                         display: "flex",
                         flexDirection: "column",
-                        marginLeft: isSameSenderMargin(
-                          messages,
-                          m,
-                          i,
-                          user._id
-                        ),
+                        marginLeft: isSameSenderMargin(messages, m, i, user._id),
                         marginTop: isSameUser(messages, m, i, user._id)
                           ? 3
-                          : 10,
+                          : 10
                       }}
                     >
                       {m.content}
@@ -295,7 +314,7 @@ const ScrollableChat = ({ messages }) => {
                         style={{
                           fontSize: "10px",
                           textAlign: "end",
-                          color: "gray",
+                          color: "gray"
                         }}
                       >
                         {formatToIST(m.updatedAt)}

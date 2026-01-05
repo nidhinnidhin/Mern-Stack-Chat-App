@@ -24,8 +24,8 @@ import animationData from "../animations/typing.json";
 import SendIcon from "@mui/icons-material/Send";
 import { Tooltip } from "@chakra-ui/react";
 
-const ENDPOINT = "https://mern-stack-chat-app-wu4f.onrender.com";
-// const ENDPOINT = "http://localhost:5000";
+// const ENDPOINT = "https://mern-stack-chat-app-wu4f.onrender.com";
+const ENDPOINT = "http://localhost:5000";
 var socket, selectedChatCompare;
 
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
@@ -94,20 +94,36 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   }, [selectedChat]);
 
   useEffect(() => {
-    socket.on("message recieved", (newMessageRecieved) => {
-      if (
-        !selectedChatCompare ||
-        selectedChatCompare._id !== newMessageRecieved.chat._id
-      ) {
-        if (!notification.includes(newMessageRecieved)) {
-          setNotification([newMessageRecieved, ...notification]);
-          setFetchAgain(!fetchAgain);
-        }
-      } else {
-        setMessages([...messages, newMessageRecieved]);
+  socket.on("message recieved", (newMessageRecieved) => {
+    // If no chat is selected OR the message is from a different chat
+    if (
+      !selectedChatCompare ||
+      selectedChatCompare._id !== newMessageRecieved.chat._id
+    ) {
+      // Only add notification if user is NOT currently viewing this chat
+      if (!notification.includes(newMessageRecieved)) {
+        setNotification([newMessageRecieved, ...notification]);
+        setFetchAgain(!fetchAgain);
       }
-    });
+    } else {
+      // User is viewing this chat, just add message to the display
+      setMessages([...messages, newMessageRecieved]);
+    }
   });
+});
+
+useEffect(() => {
+  // Clear notifications for the selected chat when user opens it
+  if (selectedChat) {
+    setNotification(notification.filter(
+      (n) => n.chat._id !== selectedChat._id
+    ));
+  }
+  
+  fetchMessages();
+  selectedChatCompare = selectedChat;
+}, [selectedChat]);
+  
 
   const sendMessage = async (event) => {
     if (event.key === "Enter" && newMessage) {

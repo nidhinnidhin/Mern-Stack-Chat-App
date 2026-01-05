@@ -16,11 +16,15 @@ import {
   useDisclosure,
   useToast,
 } from "@chakra-ui/react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ChatState } from "../../Context/ChatProvider";
 import UserBadgeItem from "../UserAvatar/UserBadgeItem";
 import { axiosReqWithToken } from "../../api/axios";
 import UserListItem from "../UserAvatar/UserListItem";
+import io from "socket.io-client";
+
+const ENDPOINT = "http://localhost:5000";
+let socket;
 
 const UpdateGroupChatModal = ({ fetchAgain, setFetchAgain, fetchMessages }) => {
   const [groupChatName, setGroupChatName] = useState();
@@ -31,6 +35,18 @@ const UpdateGroupChatModal = ({ fetchAgain, setFetchAgain, fetchMessages }) => {
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { selectedChat, setSelectedChat, user } = ChatState();
+
+  useEffect(() => {
+    if (user) {
+      socket = io(ENDPOINT);
+      socket.emit("setup", user);
+      socket.on("connected", () => console.log("Connected to socket.io"));
+
+      return () => {
+        socket.disconnect();
+      };
+    }
+  }, [user]);
 
   const toast = useToast();
 
@@ -52,6 +68,16 @@ const UpdateGroupChatModal = ({ fetchAgain, setFetchAgain, fetchMessages }) => {
         chatId: selectedChat._id,
         userId: user1._id,
       });
+
+       // Send notification message about member removal
+      const message = {
+        content: user1._id === user._id 
+          ? `${user.name} left the group`
+          : `${user1.name} was removed from the group by ${user.name}`,
+        chatId: selectedChat._id
+      };
+      const { data: messageData } = await axiosReqWithToken.post("/api/message", message);
+      socket.emit("group update", messageData);
 
       user1._id === user._id ? setSelectedChat() : selectedChat(data);
       setFetchAgain(!fetchAgain);
@@ -100,8 +126,18 @@ const UpdateGroupChatModal = ({ fetchAgain, setFetchAgain, fetchMessages }) => {
         chatId: selectedChat._id,
         userId: user1._id,
       });
+      
+      // Send notification message about new member
+      const message = {
+        content: `${user1.name} has been added to the group by ${user.name}`,
+        chatId: selectedChat._id
+      };
+      const { data: messageData } = await axiosReqWithToken.post("/api/message", message);
+      socket.emit("group update", messageData);
+      
       setSelectedChat(data);
       setFetchAgain(!fetchAgain);
+      fetchMessages();
       setLoading(false);
     } catch (error) {
       toast({
@@ -127,6 +163,14 @@ const UpdateGroupChatModal = ({ fetchAgain, setFetchAgain, fetchMessages }) => {
         chatId: selectedChat._id,
         chatName: groupChatName,
       });
+      // Send notification message about group name change
+      const message = {
+        content: `Group name was changed to "${groupChatName}" by ${user.name}`,
+        chatId: selectedChat._id
+      };
+      const { data: messageData } = await axiosReqWithToken.post("/api/message", message);
+      socket.emit("group update", messageData);
+
       setSelectedChat(data);
       setFetchAgain(!fetchAgain);
       toast({

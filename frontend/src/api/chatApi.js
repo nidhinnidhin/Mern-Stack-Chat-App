@@ -1,7 +1,8 @@
 import axios from 'axios'
 import PORT from '../config'
 
-const baseURL = `https://mern-stack-chat-app-wu4f.onrender.com`;
+// const baseURL = `https://mern-stack-chat-app-wu4f.onrender.com`;
+const baseURL = `http://localhost:5000`;
 
 export const fetchChats = async () => {
     try{
